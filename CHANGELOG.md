@@ -6,6 +6,45 @@ bottom of the clock/settings screen (swipe down) and `web/manifest.json`.
 Updating from the [web installer](https://socquique.github.io/TamaPoke/web/)
 **without** ticking "Erase device" keeps your Pokémon.
 
+## [Unreleased]
+
+### Added
+
+- **Korean, the eighth language.** Full UI (85 strings), the three medal name
+  lengths and the 151 gen-1 species names, on the same `STRINGS[LANG][StrId]`
+  structure as every other language. Nothing was needed at the draw sites: the
+  text engine centralised in 1.15 already handles a CJK row, so this is strings
+  plus one font.
+- `u8g2_font_unifont_t_korean2` for Hangul. These strings use 296 distinct
+  syllables; `korean2` carries the 2350 of KS X 1001 and covers every one of
+  them, plus the ASCII the format strings need — checked character by character
+  over the 85 UI strings, the 24 medal strings and the 151 names, 0 missing.
+  `korean1` is 16 KB against korean2's 77 KB but holds only 478 syllables, and
+  was already measured short on a superset of these strings. The font is now
+  chosen per language rather than by a single `CJK_FONT`, since `japanese3`
+  has no Hangul and `korean2` no kana.
+
+### Fixed
+
+- **The release dialog truncated Korean names mid-character.** `renderRelease()`
+  built into `char q[28]`, sized when every string was one byte per character;
+  `"%s 놓아줄까요?"` plus a species name reaches 33 bytes, so `snprintf` cut
+  inside a 3-byte sequence and left a tail the font could not decode. Now 48.
+- **Three places still sized and positioned text with `strlen()`**, which counts
+  bytes: the stat-card header, the species name under a nickname, and the
+  gallery detail header. On a UTF-8 row that put a name about 50 px off centre
+  and made the auto-shrink threshold fire on the wrong measure. All three now go
+  through `textW()` / `centerX()`. With the classic font `textW()` returns
+  `strlen()*6*size` — the identical expression — so the six Latin languages land
+  on the same coordinate at the same size, checked at every length from 1 to 25.
+- **`tools/test_i18n_formats.py`'s `LANGS` was not kept in step with
+  `LANG_COUNT`.** `extract_table()` pulls only the first `len(LANGS)` blocks, so
+  a row past the sixth was skipped in silence rather than reported. It now lists
+  all eight, and the docstring says why it must be complete.
+- **`test/test_i18n.cpp`'s `LANG_NAME[LANG_COUNT]` had six entries** against a
+  larger `LANG_COUNT`, leaving trailing null pointers that the test dereferences
+  when naming the offending language in a failure message. Now lists all eight.
+
 ## [1.16] - 2026-09-09
 
 ### Fixed

@@ -12,38 +12,41 @@ Updating from the [web installer](https://socquique.github.io/TamaPoke/web/)
 
 - **Korean, the eighth language.** Full UI (85 strings), the three medal name
   lengths and the 151 gen-1 species names, on the same `STRINGS[LANG][StrId]`
-  structure as every other language. Nothing was needed at the draw sites: the
-  text engine centralised in 1.15 already handles a CJK row, so this is strings
-  plus one font.
-- `u8g2_font_unifont_t_korean2` for Hangul. These strings use 296 distinct
-  syllables; `korean2` carries the 2350 of KS X 1001 and covers every one of
-  them, plus the ASCII the format strings need — checked character by character
-  over the 85 UI strings, the 24 medal strings and the 151 names, 0 missing.
-  `korean1` is 16 KB against korean2's 77 KB but holds only 478 syllables, and
-  was already measured short on a superset of these strings. The font is now
-  chosen per language rather than by a single `CJK_FONT`, since `japanese3`
-  has no Hangul and `korean2` no kana.
+  structure as every other language. The text measurement centralised in 1.15
+  carries almost all of it; the four byte-based spots a UTF-8 row turned up are
+  listed under Fixed.
+- `u8g2_font_unifont_t_korean2` for Hangul, selected per language in
+  `applyLangFont()` rather than through a single `CJK_FONT`. The Korean added
+  uses 296 distinct syllables, all of them in KS X 1001, the 2350-syllable set
+  that matches the size of `korean2`; `korean1` holds 478. Coverage was checked
+  as membership in KS X 1001 rather than by walking the font table, and the
+  ASCII in the strings is assumed present. Not yet checked on the board:
+  whether `CJK_SIZE_DIV` suits `korean2` as it does the Japanese subset.
 
 ### Fixed
 
-- **The release dialog truncated Korean names mid-character.** `renderRelease()`
-  built into `char q[28]`, sized when every string was one byte per character;
-  `"%s 놓아줄까요?"` plus a species name reaches 33 bytes, so `snprintf` cut
-  inside a 3-byte sequence and left a tail the font could not decode. Now 48.
-- **Three places still sized and positioned text with `strlen()`**, which counts
+- **The release dialog could cut a Korean name mid-character.**
+  `renderRelease()` built into `char q[28]`. `"%s 놓아줄까요?"` is 17 bytes
+  before the name, so names of four syllables or more (34 of the 151) did not
+  fit, and `snprintf` truncated inside a 3-byte sequence, leaving a tail the
+  font cannot decode. Now 48; the longest case needs 33 bytes including the
+  terminator.
+- **Three places sized and positioned text with `strlen()`**, which counts
   bytes: the stat-card header, the species name under a nickname, and the
-  gallery detail header. On a UTF-8 row that put a name about 50 px off centre
-  and made the auto-shrink threshold fire on the wrong measure. All three now go
+  gallery detail header. On a UTF-8 row the centring offset and the auto-shrink
+  threshold worked off a byte count rather than a width. All three now go
   through `textW()` / `centerX()`. With the classic font `textW()` returns
-  `strlen()*6*size` — the identical expression — so the six Latin languages land
-  on the same coordinate at the same size, checked at every length from 1 to 25.
-- **`tools/test_i18n_formats.py`'s `LANGS` was not kept in step with
-  `LANG_COUNT`.** `extract_table()` pulls only the first `len(LANGS)` blocks, so
-  a row past the sixth was skipped in silence rather than reported. It now lists
-  all eight, and the docstring says why it must be complete.
-- **`test/test_i18n.cpp`'s `LANG_NAME[LANG_COUNT]` had six entries** against a
-  larger `LANG_COUNT`, leaving trailing null pointers that the test dereferences
-  when naming the offending language in a failure message. Now lists all eight.
+  `strlen()*6*size`, the same expression as before, so the six Latin languages
+  land on the same coordinate at the same size, checked at every length from 1
+  to 25.
+- **`tools/test_i18n_formats.py` reads only the first `len(LANGS)` language
+  blocks**, and `LANGS` listed six, so later rows were skipped without a
+  warning. It now lists all eight, and the docstring notes that it needs to
+  stay complete.
+- **`test/test_i18n.cpp`'s `LANG_NAME[LANG_COUNT]` had six entries**, fewer
+  than `LANG_COUNT`, so every entry past the sixth was null. Four of the tests
+  build a label from `LANG_NAME[lang]` on every iteration, not only when a
+  check fails, so each run passed a null pointer to `%s`. Now lists all eight.
 
 ## [1.16] - 2026-09-09
 

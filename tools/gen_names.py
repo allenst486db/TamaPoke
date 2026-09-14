@@ -89,8 +89,8 @@ def main():
         f.write('# -*- coding: utf-8 -*-\n')
         f.write('"""GENERADO por tools/gen_names.py desde PokeAPI - no editar a mano.\n\n')
         f.write('Nombres oficiales por idioma. FR y DE van en mayusculas y sin\n')
-        f.write('acentos (fuente CP437, un byte por caracter); JA va en katakana\n')
-        f.write('UTF-8 tal cual, porque se pinta con una fuente U8g2.\n"""\n\n')
+        f.write('acentos (fuente CP437, un byte por caracter); JA y KO van en\n')
+        f.write('UTF-8 tal cual, porque se pintan con una fuente U8g2.\n"""\n\n')
         f.write('LOCAL_NAMES = {\n')
         for num in sorted(out):
             f.write(f'    {num}: {out[num]!r},\n')

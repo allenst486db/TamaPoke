@@ -119,9 +119,10 @@ class TestDexData(unittest.TestCase):
 
     def test_los_nombres_traducidos_cuadran_con_su_fuente(self):
         # Los latinos se pintan con la fuente CP437 (un byte por caracter, sin
-        # minusculas en los nombres); el japones con una fuente U8g2 y va en
-        # katakana UTF-8, asi que ni es ASCII ni tiene mayusculas que comprobar.
-        LATINOS, CJK = ('fr', 'de'), ('ja',)
+        # minusculas en los nombres); el japones y el coreano con una fuente
+        # U8g2 y van en UTF-8, asi que ni son ASCII ni tienen mayusculas que
+        # comprobar.
+        LATINOS, CJK = ('fr', 'de'), ('ja', 'ko')
         for num, langs in self.NAMES.items():
             self.assertIn(num, self.byNum, f'nombre traducido de una especie inexistente: {num}')
             for lang, name in langs.items():
@@ -132,7 +133,7 @@ class TestDexData(unittest.TestCase):
                     self.assertEqual(name, name.upper(), f'{num} {lang} lleva minusculas: {name}')
                     self.assertLessEqual(len(name), 12, f'{num} {lang} no cabe en pantalla: {name}')
                 else:
-                    # el limite util son CARACTERES, no bytes: en UTF-8 cada kana ocupa 3
+                    # el limite util son CARACTERES, no bytes: en UTF-8 cada kana o silaba hangul ocupa 3
                     self.assertLessEqual(len(name), 8, f'{num} {lang} no cabe en pantalla: {name}')
 
 
